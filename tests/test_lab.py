@@ -24,13 +24,22 @@ class TaskTests(unittest.TestCase):
         cls.answer = {'schedule': rows_from_solution(cls.task, cls.solution), 'message': 'C01 supports this.', 'assignments': []}
 
     def test_shipped_tasks_have_unique_solutions(self):
+        expected_ids = {f'science-fair-{seed}' for seed in [17, 29, 43, 59, 71, 83, 97, 109, 127, 149]}
+        seen_ids, bundled_solutions = set(), set()
         for path in (ROOT / 'tasks').glob('*.json'):
             task = load_task(path)
+            seen_ids.add(task['id'])
             solutions = solve(task)
             self.assertEqual(len(solutions), 1, path.name)
             result = evaluate(task, {'schedule': rows_from_solution(task, solutions[0])}, solutions[0])
             self.assertTrue(result['exact'])
             self.assertEqual(result['satisfied_clues'], len(task['clues']))
+            if task['id'] in expected_ids:
+                self.assertEqual(len(task['clues']), 30, path.name)
+                self.assertEqual(task, generate(task['seed']), path.name)
+                bundled_solutions.add(json.dumps(solutions[0], sort_keys=True))
+        self.assertTrue(expected_ids <= seen_ids, f'Missing bundled cases: {expected_ids - seen_ids}')
+        self.assertEqual(len(bundled_solutions), 10, 'Bundled cases must have distinct schedules.')
 
     def test_generation_is_reproducible_and_unique(self):
         self.assertEqual(generate(77), generate(77))

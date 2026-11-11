@@ -82,7 +82,9 @@ Six students visited a science fair at six different times. Each visit has a roo
 
 Recover **all 24 category assignments** from 30 linked clues. A correct equipment-owner guess alone does not earn full credit.
 
-Three cases are included. An exact constraint solver checks that each case has exactly one solution.
+Ten cases are included. An exact constraint solver checks that each case has exactly one solution.
+
+See the [case catalog](tasks/README.md) for all ten files. Each case has a different schedule and clue set.
 
 ```bash
 python -m lab task
