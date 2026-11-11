@@ -85,47 +85,58 @@ def rows_from_solution(task, solution):
             for i, slot in enumerate(task["slots"])]
 
 
-def evaluate(task, answer, solution):
-    """Invalid or duplicate cells earn no credit. No LLM judge is used."""
+def candidate_positions(task, answer):
+    """Read supplied cells only; do not infer or repair missing values."""
     rows = answer.get("schedule", []) if isinstance(answer, dict) else []
     if not isinstance(rows, list):
         rows = []
-    slots = task["slots"]
-    cats = task["categories"]
+    slots, cats = task["slots"], task["categories"]
     positions = {slot: i for i, slot in enumerate(slots)}
-    correct = total = 0
-    valid_positions = dict(positions)
     for cat, values in cats.items():
         for value in values:
             occurrences = [r for r in rows if isinstance(r, dict) and r.get(cat) == value]
-            total += 1
             if len(occurrences) != 1:
                 continue
-            row = occurrences[0]
-            slot = row.get("slot")
-            if not isinstance(slot, str) or slot not in positions:
+            slot = occurrences[0].get("slot")
+            if not isinstance(slot, str) or slot not in slots:
                 continue
-            if sum(isinstance(r, dict) and r.get("slot") == slot for r in rows) != 1:
-                continue
-            valid_positions[value] = positions[slot]
-            correct += positions[slot] == solution[value]
-    clue_checks = []
-    for c in task["clues"]:
-        a, b = valid_positions.get(c["a"]), valid_positions.get(c["b"])
-        ok = a is not None and b is not None and relation(c["op"], a, b, c.get("distance", 1))
-        clue_checks.append({"id": c["id"], "satisfied": ok})
-    structurally_valid = (len(rows) == len(slots) and
+            if sum(isinstance(r, dict) and r.get("slot") == slot for r in rows) == 1:
+                positions[value] = slots.index(slot)
+    valid = (len(rows) == len(slots) and
         all(isinstance(r, dict) and set(r) == {"slot", *cats} for r in rows) and
-        len(valid_positions) == len(slots) + total)
-    return {"score": round(100 * correct / total, 2), "correct_cells": correct,
-            "total_cells": total, "exact": correct == total and structurally_valid,
-            "structurally_valid": structurally_valid, "clues": clue_checks,
-            "satisfied_clues": sum(c["satisfied"] for c in clue_checks)}
+        len(positions) == len(slots) + sum(len(v) for v in cats.values()))
+    return positions, valid
+
+
+def check_candidate(task, answer):
+    """Check explicit public clues and grid rules, without solving the task."""
+    positions, valid = candidate_positions(task, answer)
+    checks = []
+    for clue in task["clues"]:
+        a, b = positions.get(clue["a"]), positions.get(clue["b"])
+        ok = a is not None and b is not None and relation(clue["op"], a, b, clue.get("distance", 1))
+        checks.append({"id": clue["id"], "satisfied": ok})
+    return {"structurally_valid": valid, "clues": checks,
+            "satisfied_clues": sum(c["satisfied"] for c in checks),
+            "violated_clue_ids": [c["id"] for c in checks if not c["satisfied"]],
+            "fully_satisfied": valid and all(c["satisfied"] for c in checks)}
+
+
+def evaluate(task, answer, solution):
+    """Reference accuracy is available only to the post-run evaluator."""
+    positions, valid = candidate_positions(task, answer)
+    values = [v for group in task["categories"].values() for v in group]
+    correct = sum(v in positions and positions[v] == solution[v] for v in values)
+    checks = check_candidate(task, answer)
+    return {"score": round(100 * correct / len(values), 2), "correct_cells": correct,
+            "total_cells": len(values), "exact": correct == len(values) and valid,
+            "structurally_valid": valid, "clues": checks["clues"],
+            "satisfied_clues": checks["satisfied_clues"]}
 
 
 def public_prompt(task):
     lines = [task["title"], task["story"],
-        "Reconstruct all six visits. Each time slot has exactly one value from each category.",
+        f"Reconstruct all {len(task['slots'])} visits. Each time slot has exactly one value from each category.",
         "Each category value appears exactly once. Earlier/later refer to time, not room names.",
         "All clues are true. Return the entire schedule, not only the equipment owner.",
         "Slots in chronological order: " + ", ".join(task["slots"])]

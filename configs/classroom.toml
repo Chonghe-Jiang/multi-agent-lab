@@ -1,3 +1,5 @@
+selection = "public-checker"
+solo_budget_rounds = 12
 # Each mode gets its own ceiling. A comparison runs four modes.
 rounds = 3
 message_chars = 1600

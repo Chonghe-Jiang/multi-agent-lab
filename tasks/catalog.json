@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "calibration": "Structural levels; live success rates have not yet been calibrated.",
+  "tasks": [
+    {
+      "file": "science-fair-easy-201.json",
+      "difficulty": "easy"
+    },
+    {
+      "file": "science-fair-easy-211.json",
+      "difficulty": "easy"
+    },
+    {
+      "file": "science-fair-easy-223.json",
+      "difficulty": "easy"
+    },
+    {
+      "file": "science-fair-medium-307.json",
+      "difficulty": "medium"
+    },
+    {
+      "file": "science-fair-medium-311.json",
+      "difficulty": "medium"
+    },
+    {
+      "file": "science-fair-medium-313.json",
+      "difficulty": "medium"
+    },
+    {
+      "file": "science-fair-medium-317.json",
+      "difficulty": "medium"
+    },
+    {
+      "file": "science-fair-17.json",
+      "difficulty": "hard"
+    },
+    {
+      "file": "science-fair-29.json",
+      "difficulty": "hard"
+    },
+    {
+      "file": "science-fair-43.json",
+      "difficulty": "hard"
+    }
+  ]
+}

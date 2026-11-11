@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "multi-agent-lab"
-version = "0.1.0"
+version = "0.2.0"
 description = "A classroom lab for comparing agent collaboration structures."
 requires-python = ">=3.11"
 dependencies = []

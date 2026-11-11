@@ -26,7 +26,7 @@ class TaskTests(unittest.TestCase):
     def test_shipped_tasks_have_unique_solutions(self):
         expected_ids = {f'science-fair-{seed}' for seed in [17, 29, 43, 59, 71, 83, 97, 109, 127, 149]}
         seen_ids, bundled_solutions = set(), set()
-        for path in (ROOT / 'tasks').glob('*.json'):
+        for path in (ROOT / 'tasks').glob('science-fair-*.json'):
             task = load_task(path)
             seen_ids.add(task['id'])
             solutions = solve(task)
@@ -150,7 +150,7 @@ class ProtocolTests(unittest.IsolatedAsyncioTestCase):
         result = await self.run_mode('exchange')
         self.assertEqual(len(result['calls']), 4)
         self.assertEqual(result['status'], 'stopped')
-        self.assertEqual(result['final_answer'], result['calls'][0]['answer'])
+        self.assertIn(result['final_answer'], [c['answer'] for c in result['calls']])
 
     async def test_missing_usage_stops_further_calls(self):
         original = self.backend.call

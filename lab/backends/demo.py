@@ -16,9 +16,10 @@ class DemoBackend:
         rows = [dict(row) for row in self.rows]
         turn = context["round"]
         if turn < 3:
-            category = "equipment" if turn == 1 else "room"
+            category = ("equipment" if "equipment" in rows[0] else "project") if turn == 1 else "room"
             index = int(context["agent"][-1]) - 1 if context["agent"].startswith("worker") else 0
-            other = (index + 1) % 6
+            index %= len(rows)
+            other = (index + 1) % len(rows)
             rows[index][category], rows[other][category] = rows[other][category], rows[index][category]
         if turn == 0:
             rows = []

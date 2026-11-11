@@ -1,0 +1,120 @@
+{
+  "id": "science-fair-easy-211",
+  "seed": 211,
+  "difficulty": "easy",
+  "calibration": "Structural level; model success rate is not calibrated.",
+  "title": "The Science Fair Sign-out Sheet (Easy)",
+  "story": "4 students made consecutive ten-minute visits. Reconstruct the sign-out sheet. Each visit has exactly one value from each category. All records are reliable.",
+  "slots": [
+    "09:00",
+    "09:10",
+    "09:20",
+    "09:30"
+  ],
+  "categories": {
+    "student": [
+      "Ada",
+      "Ben",
+      "Cleo",
+      "Diego"
+    ],
+    "room": [
+      "Atlas",
+      "Birch",
+      "Cedar",
+      "Delta"
+    ],
+    "project": [
+      "Algae",
+      "Battery",
+      "Climate",
+      "Drone"
+    ]
+  },
+  "clues": [
+    {
+      "a": "Ada",
+      "b": "09:10",
+      "op": "same",
+      "text": "Ada and 09:10 refer to the same visit.",
+      "id": "C01"
+    },
+    {
+      "a": "Ben",
+      "b": "09:00",
+      "op": "same",
+      "text": "Ben and 09:00 refer to the same visit.",
+      "id": "C02"
+    },
+    {
+      "a": "Cleo",
+      "b": "09:30",
+      "op": "same",
+      "text": "Cleo and 09:30 refer to the same visit.",
+      "id": "C03"
+    },
+    {
+      "a": "Diego",
+      "b": "09:20",
+      "op": "same",
+      "text": "Diego and 09:20 refer to the same visit.",
+      "id": "C04"
+    },
+    {
+      "a": "Ada",
+      "b": "Cedar",
+      "op": "same",
+      "text": "Ada and Cedar refer to the same visit.",
+      "id": "C05"
+    },
+    {
+      "a": "Ada",
+      "b": "Drone",
+      "op": "same",
+      "text": "Ada and Drone refer to the same visit.",
+      "id": "C06"
+    },
+    {
+      "a": "Ben",
+      "b": "Delta",
+      "op": "same",
+      "text": "Ben and Delta refer to the same visit.",
+      "id": "C07"
+    },
+    {
+      "a": "Ben",
+      "b": "Algae",
+      "op": "same",
+      "text": "Ben and Algae refer to the same visit.",
+      "id": "C08"
+    },
+    {
+      "a": "Cleo",
+      "b": "Atlas",
+      "op": "same",
+      "text": "Cleo and Atlas refer to the same visit.",
+      "id": "C09"
+    },
+    {
+      "a": "Cleo",
+      "b": "Climate",
+      "op": "same",
+      "text": "Cleo and Climate refer to the same visit.",
+      "id": "C10"
+    },
+    {
+      "a": "Diego",
+      "b": "Birch",
+      "op": "same",
+      "text": "Diego and Birch refer to the same visit.",
+      "id": "C11"
+    },
+    {
+      "a": "Diego",
+      "b": "Battery",
+      "op": "same",
+      "text": "Diego and Battery refer to the same visit.",
+      "id": "C12"
+    }
+  ]
+}

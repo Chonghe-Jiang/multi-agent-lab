@@ -1,3 +1,5 @@
+selection = "public-checker"
+solo_budget_rounds = 20
 rounds = 5
 message_chars = 2400
 

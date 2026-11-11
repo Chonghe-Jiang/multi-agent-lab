@@ -1,6 +1,6 @@
 """Round barriers make visibility explicit and independent of response timing."""
 import asyncio
-from collections import Counter
+import copy
 from datetime import datetime, timezone
 import json
 import math
@@ -10,23 +10,11 @@ from .backends.cli import extract_json
 from .config import estimate_cost
 from .schema import response_schema, validate_answer
 from .task import evaluate, public_prompt, solve
+from .selection import choose_answer
+from .diagnostics import annotate_result
 
 MODES = ("solo", "leader", "independent", "exchange")
-
-
-def choose_answer(results):
-    """Plurality over whole schedules; ties go to the lowest agent ID.
-
-    No evaluator, reference solution, or best-of-four selection enters this rule.
-    """
-    candidates = sorted((r for r in results if r and r.get("answer")), key=lambda r: r["agent"])
-    if not candidates:
-        return None, []
-    def key(r):
-        return json.dumps(sorted(r["answer"]["schedule"], key=lambda row: row["slot"]), sort_keys=True)
-    counts = Counter(key(r) for r in candidates)
-    winner = max(candidates, key=lambda r: counts[key(r)])
-    return winner["answer"], [r["id"] for r in candidates if key(r) == key(winner)]
+ALL_MODES = (*MODES, "solo-budget")
 
 
 def prompt_for(task, agent, round_number, own, visible, instruction, message_chars):
@@ -34,11 +22,11 @@ def prompt_for(task, agent, round_number, own, visible, instruction, message_cha
     content += instruction + "\n"
     content += ("Use only this prompt. No tools, external sources, or extra agents are allowed.\n"
         "Return JSON with exactly schedule, message, and assignments.\n"
-        "schedule: rows with slot, student, room, project, equipment. Use exact names.\n"
+        f"schedule: rows with slot and these fields: {', '.join(task['categories'])}. Use exact names.\n"
         "message: a concise conclusion with clue IDs, uncertainties, and useful corrections.\n"
         f"Keep message within {message_chars} characters.\n"
         "assignments: up to three short worker instructions, or [] for a worker.\n"
-        "Submit exactly six schedule rows, even when uncertain. Make your best supported candidate.\n"
+        f"Submit exactly {len(task['slots'])} schedule rows, even when uncertain. Make your best supported candidate.\n"
         "State uncertainties in message. Only the initial leader planning call can use schedule=[].\n")
     if own:
         content += "\nYour previous response:\n" + json.dumps(own["answer"], ensure_ascii=False) + "\n"
@@ -50,15 +38,19 @@ def prompt_for(task, agent, round_number, own, visible, instruction, message_cha
 
 
 class ModeRunner:
-    def __init__(self, task, config, backend, mode, repeat=1, progress=print):
+    def __init__(self, task, config, backend, mode, repeat=1, progress=print, saved_state=None, call_checkpoint=None):
         self.task, self.config, self.backend, self.mode = task, config, backend, mode
         self.repeat, self.progress = repeat, progress
         self.started = time.monotonic()
         self.records = []
         self.reason = None
+        saved_state = saved_state or {}
+        self.saved = {c["id"]: copy.deepcopy(c) for c in saved_state.get("calls", [])}
+        self.elapsed_offset = saved_state.get("elapsed_seconds", 0)
+        self.call_checkpoint = call_checkpoint
 
     def elapsed(self):
-        return time.monotonic() - self.started
+        return self.elapsed_offset + time.monotonic() - self.started
 
     def totals(self):
         uses = [r["usage"] for r in self.records if r.get("usage")]
@@ -92,11 +84,46 @@ class ModeRunner:
             message["schedule"] = answer["schedule"]
         return message
 
+    def persist(self):
+        if self.call_checkpoint:
+            self.call_checkpoint({"calls": self.records, "elapsed_seconds": self.elapsed()})
+
     async def wave(self, specs):
-        if not self.can_start(len(specs)):
+        base = len(self.records)
+        old = [self.saved.get(f"call-{base + i + 1:03d}") for i in range(len(specs))]
+        for spec, cached in zip(specs, old):
+            if cached:
+                agent, turn, own, visible, instruction = spec
+                expected = prompt_for(self.task, agent, turn, own, visible, instruction, self.config["message_chars"])
+                if cached["prompt"] != expected:
+                    raise ValueError("Saved call prompt differs from this run. Use a new output directory.")
+        if any(c and c['status'] == 'running' for c in old):
+            restored = []
+            for cached in old:
+                if cached:
+                    if cached['status'] == 'running':
+                        cached.update(status='error', error='Interrupted call: usage is unknown. No automatic retry.',
+                                      end_seconds=self.elapsed())
+                    self.records.append(cached)
+                    restored.append(cached)
+            self.reason = 'interrupted call with unknown usage; remaining wave was not launched'
+            self.persist()
+            return restored
+        new_count = sum(c is None for c in old)
+        prefix = self.records
+        # Include already billed members of a partially saved wave in budget accounting.
+        self.records = prefix + [c for c in old if c]
+        allowed = not new_count or self.can_start(new_count)
+        remaining_dollars = self.config['budget']['max_estimated_usd'] - self.totals()['estimated_usd']
+        self.records = prefix
+        if not allowed:
+            self.records.extend(c for c in old if c)
             return []
-        remaining_dollars = self.config["budget"]["max_estimated_usd"] - self.totals()["estimated_usd"]
         async def invoke(spec):
+            cached = self.saved.get(f"call-{len(self.records) + 1:03d}")
+            if cached:
+                self.records.append(cached)
+                return cached
             agent, round_number, own, visible, instruction = spec
             record = {"id": f"call-{len(self.records) + 1:03d}", "agent": agent,
                       "round": round_number, "start_seconds": self.elapsed(),
@@ -107,13 +134,14 @@ class ModeRunner:
             record["prompt"] = prompt_for(self.task, agent, round_number, own, visible, instruction,
                                          self.config["message_chars"])
             self.records.append(record)
+            self.persist()
             self.progress(f"[{self.mode} / repeat {self.repeat}] {record['id']} {agent}, round {round_number}")
             try:
                 remaining = self.config["budget"]["max_seconds"] - self.elapsed()
                 timeout = max(0.01, min(remaining, self.config["budget"]["call_timeout_seconds"]))
                 parsed = await self.backend.call(record["prompt"], response_schema(self.task, planning=(agent == "leader" and round_number == 0)),
                     {"mode": self.mode, "agent": agent, "round": round_number, "repeat": self.repeat},
-                    timeout, max(0.01, remaining_dollars / len(specs)))
+                    timeout, max(0.01, remaining_dollars / max(1, new_count)))
                 record["actual_models"] = parsed.get("actual_models", [])
                 record["diagnostics"] = parsed.get("diagnostics", [])
                 usage = parsed.get("usage")
@@ -143,6 +171,7 @@ class ModeRunner:
             except Exception as exc:
                 record["status"], record["error"] = "error", str(exc)[:1500]
             record["end_seconds"] = self.elapsed()
+            self.persist()
             return record
         records = await asyncio.gather(*(invoke(spec) for spec in specs))
         if any(r["status"] != "ok" for r in records):
@@ -150,7 +179,7 @@ class ModeRunner:
         return records
 
     async def run(self):
-        rounds = self.config["rounds"]
+        rounds = self.config.get("solo_budget_rounds", 12) if self.mode == "solo-budget" else self.config["rounds"]
         last, final, voters = {}, None, []
         if self.mode == "leader":
             initial = await self.wave([("leader", 0, None, [],
@@ -182,7 +211,7 @@ class ModeRunner:
                 leader = synthesis[0]
                 final, voters = leader["answer"], [leader["id"]]
         else:
-            agents = ["solo"] if self.mode == "solo" else [f"worker-{i + 1}" for i in range(4)]
+            agents = ["solo"] if self.mode in ("solo", "solo-budget") else [f"worker-{i + 1}" for i in range(4)]
             for turn in range(1, rounds + 1):
                 specs = []
                 for agent in agents:
@@ -195,7 +224,7 @@ class ModeRunner:
                 if self.reason or not records:
                     break
                 last = {r["agent"]: r for r in records}
-                final, voters = choose_answer(records)
+                final, voters = choose_answer(records, self.task, self.config.get("selection", "plurality"))
         totals = self.totals()
         if not totals["usage_complete"] and not self.reason:
             self.reason = "missing usage: accounting is unknown"
@@ -206,12 +235,14 @@ class ModeRunner:
         for r in self.records:
             if r["answer"]:
                 r["evaluation"] = evaluate(self.task, r["answer"], solutions[0])
-        return {"mode": self.mode, "repeat": self.repeat, "backend": self.backend.name,
+        result = {"mode": self.mode, "repeat": self.repeat, "backend": self.backend.name,
                 "requested_model": self.backend.model, "backend_version": self.backend.version,
                 "status": "stopped" if self.reason else "complete", "stop_reason": self.reason,
                 "elapsed_seconds": self.elapsed(), "totals": totals, "calls": self.records,
                 "final_answer": final, "selected_call_ids": voters,
-                "evaluation": evaluate(self.task, final or {}, solutions[0])}
+                "evaluation": evaluate(self.task, final or {}, solutions[0]),
+                "selection": self.config.get("selection", "plurality") if self.mode in ("independent", "exchange") else "native"}
+        return annotate_result(self.task, result, solutions[0])
 
 
 async def experiment(task, config, backend, modes=MODES, repeats=1, progress=print, checkpoint=None):

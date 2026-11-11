@@ -24,6 +24,10 @@ def load_config(path):
     for name in ["codex", "claude"]:
         if not isinstance(config.get("models", {}).get(name), str) or not config["models"][name].strip():
             raise ValueError(f"models.{name} must name a model.")
+    if config.get("selection", "plurality") not in ("plurality", "public-checker"):
+        raise ValueError("selection must be plurality or public-checker.")
+    if type(config.get("solo_budget_rounds", 12)) is not int or config.get("solo_budget_rounds", 12) < 1:
+        raise ValueError("solo_budget_rounds must be a positive integer.")
     return config
 
 

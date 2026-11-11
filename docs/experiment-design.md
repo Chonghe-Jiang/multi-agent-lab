@@ -1,68 +1,75 @@
 # Experiment design
 
-## What changes
+## Collaboration and computation
 
-The independent and exchange modes differ only in message delivery. Their worker counts, task prompts, rounds, and final selection rule match.
+Independent and exchange modes differ only in peer-message delivery. Their worker counts, rounds, and final selector match.
 
-Leader mode also changes roles, worker count, coordination calls, and final selection. It is a bundled architecture comparison, not a communication-only intervention.
+Leader mode also changes roles, worker count, coordination calls, and final submission. It is a bundled architecture comparison.
 
-The lab reconstructs context explicitly for every call. Agents receive the public task and their own previous response.
+Solo-budget supplies a longer single-agent baseline under the same resource ceilings. It does not force exact token matching.
 
-Older full histories are not retained. Exchange agents also receive peer messages from the previous round.
+Use observed quality-versus-token curves for comparisons. Equal ceilings do not establish an exact fixed-compute experiment.
 
-The leader receives complete current worker candidates. Workers receive the leader's current schedule, message, and their assigned instruction.
+Each call receives the public task and its own previous response. Older full histories are not retained.
 
-Agents never see evaluation scores during a run. Peer messages are claims to inspect, not trusted ground truth.
+Exchange also receives prior-round peer summaries. The leader receives current worker candidates and summaries.
 
-## Budgets
+Workers receive the leader's current schedule, summary, and their assigned instruction. Round barriers control visibility.
 
-Equal ceilings define an allowed resource envelope. They do not force all modes to spend the same amount.
+## Selection
 
-The default round count gives solo fewer calls. A twelve-round solo run provides an additional computation baseline.
+Public-checker ranks existing candidates by structural validity, satisfied public clues, and whole-schedule vote count.
 
-Compare quality at similar observed resource use. Do not describe unequal actual usage as an exact fixed-compute experiment.
+Stable agent order breaks remaining ties. Grid validity includes unique slots and category values.
 
-No retry, fifth-agent judge, reference-guided answer selection, or hidden model upgrade enters the protocol.
+The checker inspects public facts. It performs no search, fills no cells, and receives no reference answer.
 
-Coordination tokens, repeated task context, response tokens, and cache reads count toward recorded totals.
+Plurality remains an explicit baseline. Its ties also use stable agent order.
 
-## Selection and scoring
+Both selectors apply to independent and exchange submissions. Leader and solo submit their own last complete-round answer.
 
-Independent and exchange modes use plurality over complete schedule candidates. Row order does not affect equality.
+The checker does not feed constraint results back into model prompts. Adding feedback requires a separate experimental condition.
 
-The lowest agent ID wins a tie. A wrong majority remains wrong. The answer key never determines the winner.
+## Evaluation and diagnostics
 
-The leader submits its own synthesis. Solo submits its last response.
+The exact solver checks uniqueness before model calls. Reference accuracy is computed after collaboration.
 
-The score is the fraction of correctly placed category values. A value must occur once in a uniquely specified time row.
+Each correctly placed category value earns credit. Exact success also requires a valid complete grid.
 
-Exact success also requires a complete valid schedule. Missing answers score zero. Stopped runs retain the last complete-round submission.
+Malformed model responses stop the mode. Stopped modes retain the last complete-round submission.
 
-Evaluation happens after collaboration. Per-call scores describe trajectories but never feed back into a model prompt.
+The report shows best-worker gaps, lost correct candidates, plurality ties, and revision changes.
 
-A message can cite a valid clue ID while misinterpreting that clue. The lab does not claim automatic proof verification.
+Best-worker scores are post-run oracle diagnostics. They are not an available selection policy.
 
-## Evidence limits
+Round curves replay submitted candidates at each complete round. They include cumulative coordination and repeated-context tokens.
 
-One case and one trial cannot establish a general winner. Use different cases and repeated trials.
+Suite averages use complete runs. Stopped results, unknown usage, and incomplete jobs remain visible separately.
 
-Generated cases share a task structure. Results do not automatically transfer to coding, web research, or planning tasks.
+## Offline reselection
 
-The exact solver verifies uniqueness. It does not establish human difficulty or model difficulty.
+Reselection reuses recorded answers and the original token measurements. It makes zero model calls.
 
-Alias versions, provider updates, subscription routing, cache behavior, and service load can change results.
+Only the final candidate selection changes. Leader decisions and agent messages remain fixed.
 
-The controller uses round barriers. These protocols do not model unrestricted asynchronous teams or continuous shared memory.
+Its before/after scores measure selection on a fixed candidate pool. They do not establish a new communication effect.
 
-Explicit summaries can lose useful details. Compare different message lengths as a separate experiment.
+## Cases and evidence limits
 
-The demo uses the same scripted correction pattern across modes. It demonstrates controls and report fields only.
+The active catalog has three easy, four medium, and three hard cases. The original hard-case files remain available.
 
-## Suggested investigations
+Easy cases teach the response format through direct links. Medium and hard cases introduce longer constraint combinations.
 
-- Does sharing help more on cases with many cross-category clues?
-- Does a wrong early message spread to other workers?
-- Does a leader identify disagreements or repeat the most confident claim?
-- Does a longer message improve quality enough to justify repeated input tokens?
-- Does twelve-round solo match four three-round workers?
-- Does a larger budget improve scores or only increase repeated explanations?
+These are structural levels. A model-specific success-rate calibration still requires live trials.
+
+All cases share a logic-grid structure. Their results do not establish performance on coding, research, or planning tasks.
+
+One trial per case is descriptive evidence. Use repeated trials to inspect variability.
+
+Mode order rotates across cases and repeats in a suite. This does not remove every service-load or sampling effect.
+
+Aliases, account routing, cache behavior, and provider updates can change outcomes. Record exact model IDs when the CLI reports them.
+
+Parallel cases can compete for account capacity. Report concurrency when comparing latency.
+
+The synthetic demo demonstrates the controls. Its scripted scores cannot establish a winning mode.

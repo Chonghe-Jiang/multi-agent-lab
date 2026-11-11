@@ -1,0 +1,215 @@
+{
+  "id": "science-fair-medium-307",
+  "seed": 307,
+  "difficulty": "medium",
+  "calibration": "Structural level; model success rate is not calibrated.",
+  "title": "The Science Fair Sign-out Sheet (Medium)",
+  "story": "5 students made consecutive ten-minute visits. Reconstruct the sign-out sheet. Each visit has exactly one value from each category. All records are reliable.",
+  "slots": [
+    "09:00",
+    "09:10",
+    "09:20",
+    "09:30",
+    "09:40"
+  ],
+  "categories": {
+    "student": [
+      "Ada",
+      "Ben",
+      "Cleo",
+      "Diego",
+      "Eva"
+    ],
+    "room": [
+      "Atlas",
+      "Birch",
+      "Cedar",
+      "Delta",
+      "Elm"
+    ],
+    "project": [
+      "Algae",
+      "Battery",
+      "Climate",
+      "Drone",
+      "Exoplanet"
+    ],
+    "equipment": [
+      "Camera",
+      "Laser",
+      "Microscope",
+      "Sensor",
+      "Spectrometer"
+    ]
+  },
+  "clues": [
+    {
+      "a": "Ada",
+      "b": "09:00",
+      "op": "same",
+      "text": "Ada and 09:00 refer to the same visit.",
+      "id": "C01"
+    },
+    {
+      "a": "Ben",
+      "b": "09:10",
+      "op": "same",
+      "text": "Ben and 09:10 refer to the same visit.",
+      "id": "C02"
+    },
+    {
+      "a": "Birch",
+      "b": "Drone",
+      "op": "before",
+      "text": "The visit associated with Birch was earlier than the visit associated with Drone.",
+      "id": "C03"
+    },
+    {
+      "a": "Diego",
+      "b": "Battery",
+      "op": "before",
+      "text": "The visit associated with Diego was earlier than the visit associated with Battery.",
+      "id": "C04"
+    },
+    {
+      "a": "Cedar",
+      "b": "Camera",
+      "op": "same",
+      "text": "Cedar and Camera refer to the same visit.",
+      "id": "C05"
+    },
+    {
+      "a": "Exoplanet",
+      "b": "Laser",
+      "op": "different",
+      "text": "Exoplanet and Laser refer to different visits.",
+      "id": "C06"
+    },
+    {
+      "a": "Ada",
+      "b": "Algae",
+      "op": "before",
+      "text": "The visit associated with Ada was earlier than the visit associated with Algae.",
+      "id": "C07"
+    },
+    {
+      "a": "Exoplanet",
+      "b": "Laser",
+      "op": "before",
+      "text": "The visit associated with Exoplanet was earlier than the visit associated with Laser.",
+      "id": "C08"
+    },
+    {
+      "a": "Ben",
+      "b": "Battery",
+      "op": "different",
+      "text": "Ben and Battery refer to different visits.",
+      "id": "C09"
+    },
+    {
+      "a": "Cleo",
+      "b": "Exoplanet",
+      "op": "different",
+      "text": "Cleo and Exoplanet refer to different visits.",
+      "id": "C10"
+    },
+    {
+      "a": "Cleo",
+      "b": "Battery",
+      "op": "offset",
+      "text": "The visit associated with Battery was exactly ten minutes after the visit associated with Cleo.",
+      "id": "C11"
+    },
+    {
+      "a": "Atlas",
+      "b": "Algae",
+      "op": "adjacent",
+      "text": "The visits associated with Atlas and Algae were ten minutes apart, in either order.",
+      "id": "C12"
+    },
+    {
+      "a": "Delta",
+      "b": "Sensor",
+      "op": "adjacent",
+      "text": "The visits associated with Delta and Sensor were ten minutes apart, in either order.",
+      "id": "C13"
+    },
+    {
+      "a": "Birch",
+      "b": "Drone",
+      "op": "different",
+      "text": "Birch and Drone refer to different visits.",
+      "id": "C14"
+    },
+    {
+      "a": "Birch",
+      "b": "Drone",
+      "op": "offset",
+      "text": "The visit associated with Drone was exactly ten minutes after the visit associated with Birch.",
+      "id": "C15"
+    },
+    {
+      "a": "Exoplanet",
+      "b": "Sensor",
+      "op": "before",
+      "text": "The visit associated with Exoplanet was earlier than the visit associated with Sensor.",
+      "id": "C16"
+    },
+    {
+      "a": "Algae",
+      "b": "Sensor",
+      "op": "different",
+      "text": "Algae and Sensor refer to different visits.",
+      "id": "C17"
+    },
+    {
+      "a": "Climate",
+      "b": "Laser",
+      "op": "offset",
+      "text": "The visit associated with Laser was exactly ten minutes after the visit associated with Climate.",
+      "id": "C18"
+    },
+    {
+      "a": "Birch",
+      "b": "Laser",
+      "op": "offset",
+      "text": "The visit associated with Laser was exactly ten minutes after the visit associated with Birch.",
+      "id": "C19"
+    },
+    {
+      "a": "Ada",
+      "b": "Drone",
+      "op": "different",
+      "text": "Ada and Drone refer to different visits.",
+      "id": "C20"
+    },
+    {
+      "a": "Cedar",
+      "b": "Microscope",
+      "op": "different",
+      "text": "Cedar and Microscope refer to different visits.",
+      "id": "C21"
+    },
+    {
+      "a": "Ben",
+      "b": "Camera",
+      "op": "same",
+      "text": "Ben and Camera refer to the same visit.",
+      "id": "C22"
+    },
+    {
+      "a": "Drone",
+      "b": "Sensor",
+      "op": "different",
+      "text": "Drone and Sensor refer to different visits.",
+      "id": "C23"
+    },
+    {
+      "a": "Battery",
+      "b": "Spectrometer",
+      "op": "same",
+      "text": "Battery and Spectrometer refer to the same visit.",
+      "id": "C24"
+    }
+  ]
+}
