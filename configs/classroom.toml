@@ -1,0 +1,21 @@
+# Each mode gets its own ceiling. A comparison runs four modes.
+rounds = 3
+message_chars = 1600
+
+[budget]
+max_calls = 16
+max_seconds = 900
+call_timeout_seconds = 240
+max_tokens = 240000
+max_estimated_usd = 3.0
+
+# These are accounting assumptions, NOT provider prices or a billing guarantee.
+# Replace them with rates for your exact model and provider before paid studies.
+[accounting]
+input_per_million = 5.0
+cached_input_per_million = 5.0
+output_per_million = 25.0
+
+[models]
+codex = "gpt-6-luna"
+claude = "haiku"
